@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
-namespace CityService;
+namespace CityService.Repository;
 
 public partial class CityDbContext : DbContext
 {
