@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35527.113 d17.12
+VisualStudioVersion = 17.12.35527.113
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CityService", "CityService\CityService.csproj", "{7C197C42-C855-4A46-90BC-0086DFD9B079}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -11,6 +11,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommonUse", "CommonUse\CommonUse.csproj", "{25479BFC-E9C4-4DD8-80CC-F629D994332D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Models", "Models\Models.csproj", "{37C89668-7BF6-4095-BCC6-0F93FF276B45}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flight Bookings Tests", "Flight Bookings Tests\Flight Bookings Tests.csproj", "{8508BB81-700E-4E47-98EA-2AE34AE5CA6D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,6 +32,10 @@ Global
 		{37C89668-7BF6-4095-BCC6-0F93FF276B45}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{37C89668-7BF6-4095-BCC6-0F93FF276B45}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{37C89668-7BF6-4095-BCC6-0F93FF276B45}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8508BB81-700E-4E47-98EA-2AE34AE5CA6D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8508BB81-700E-4E47-98EA-2AE34AE5CA6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8508BB81-700E-4E47-98EA-2AE34AE5CA6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8508BB81-700E-4E47-98EA-2AE34AE5CA6D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

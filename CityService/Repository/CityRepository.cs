@@ -59,13 +59,13 @@ namespace CityService.Repository
                 // If city does not exist, throw custom exception
                 if (existingCity == null)
                 {
-                    throw new KeyNotExistException(cityCode);
+                    throw new KeyNotExistException($"City with code {cityCode} does not exist.");
                 }
 
                 // Add any validation rules here, if needed, before updating
                 if (string.IsNullOrEmpty(city.CityName) || city.AirportCharge < 0)
                 {
-                    throw new InvalidCityDataException("City Name is required and Airport Charge cannot be negative.");
+                    throw new InvalidCityDataException("City Name is required or Airport Charge cannot be negative.");
                 }
 
                 // Update the existing city with the new data
@@ -97,7 +97,7 @@ namespace CityService.Repository
             {
                 // Catch all other exceptions
                 Console.WriteLine($"Unexpected error updating city: {ex.Message}");
-                return null;
+                throw new Exception("An error occurred while updating the city.", ex); // Rethrow a general exception
             }
         }
 
@@ -125,8 +125,9 @@ namespace CityService.Repository
             }
             catch (KeyNotExistException ex)
             {
-                // Rethrow custom exception if city doesn't exist
-                throw ex;
+                // Log and rethrow the custom exception for city not found
+                Console.WriteLine($"Error: {ex.Message}");
+                throw;
             }
             catch (Exception ex)
             {
@@ -164,8 +165,9 @@ namespace CityService.Repository
             }
             catch (KeyNotExistException ex)
             {
-                // If the city doesn't exist, rethrow the exception
-                throw ex;
+                // Log and rethrow the exception for missing city
+                Console.WriteLine($"Error: {ex.Message}");
+                throw;
             }
             catch (Exception ex)
             {
@@ -186,7 +188,7 @@ namespace CityService.Repository
             catch (Exception ex)
             {
                 Console.WriteLine($"Error fetching cities: {ex.Message}");
-                return Enumerable.Empty<City>();
+                throw new ApplicationException("An error occurred while retrieving cities from the database.", ex);
             }
         }
 
@@ -199,25 +201,50 @@ namespace CityService.Repository
                     .Where(c => c.CityCode == cityCode)
                     .FirstOrDefaultAsync();
 
+                //if (city == null)
+                //{
+                //    // Throw custom exception when city is not found
+                //    throw new KeyNotExistException($"City with CityCode '{cityCode}' does not exist.");
+                //}
+
+                return city; // Return the city if found
+            }
+            catch (Exception ex)
+            {
+                // Log the exception and rethrow it for higher layers to handle
+                Console.WriteLine($"Error fetching city by city code '{cityCode}': {ex.Message}");
+                throw; // Rethrow the exception to be handled by the process or controller layer
+            }
+        }
+
+        // Get city by Name
+        public async Task<City> GetCityByNameAsync(string cityName)
+        {
+            try
+            {
+                var city = await _context.Cities
+                    .Where(c => c.CityName == cityName)
+                    .FirstOrDefaultAsync();
+
                 if (city == null)
                 {
                     // Throw custom exception when city is not found
-                    throw new KeyNotExistException($"City with CityCode '{cityCode}' does not exist.");
+                    throw new KeyNotExistException($"City with CityName '{cityName}' does not exist.");
                 }
 
                 return city;
             }
             catch (KeyNotExistException ex)
             {
-                // Handle the custom exception here (you can log or take other actions)
+                // Log the specific exception for city not found
                 Console.WriteLine($"Error: {ex.Message}");
-                return null;
+                throw;  // Rethrow the exception to be handled by the process/controller layers
             }
             catch (Exception ex)
             {
-                // Handle general exceptions
-                Console.WriteLine($"Error fetching city by city code: {ex.Message}");
-                return null;
+                // Handle other exceptions
+                Console.WriteLine($"Error fetching city by name: {ex.Message}");
+                throw new Exception("An unexpected error occurred while fetching the city.", ex);
             }
         }
 

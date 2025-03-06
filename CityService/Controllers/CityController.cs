@@ -11,217 +11,204 @@ namespace CityService.Controllers
     [ApiController]
     public class CityController : ControllerBase
     {
-        //private readonly ICity _cityRepository;
-        //CityProcess process;
-        //ILogger<CityController> logger;
-        ICity _cityRepository;
-        public CityController(ICity cityRepository) {
-            _cityRepository = cityRepository;
-        }
-        //public CityController(CityProcess p, ILogger<CityController> log) =>
-        //    (process, logger) = (p, log);
+        private readonly CityProcess process;
+        private readonly ILogger<CityController> logger;
 
-        // Add a new city
-        [HttpPost("Add")]
-        public async Task<ActionResult<bool>> AddCityAsync(City city)
+        public CityController(CityProcess p, ILogger<CityController> log) =>
+           (process, logger) = (p, log);
+        //public CityController(CityProcess p)
+        //{
+        //    this.process = p;
+        //}
+
+
+
+        [HttpGet("All")]
+        public async Task<IActionResult> GetAllData()
         {
             try
             {
-                // Call the repository to add the city
-                var result = await _cityRepository.AddCityAsync(city);
-
-                // Return true if the city was added successfully
-                if (result)
-                {
-                    return Ok(true);  // HTTP 200 OK response
-                }
-                else
-                {
-                    return BadRequest(new { Message = "Failed to add the city." }); // HTTP 400 Bad Request if adding fails
-                }
+                var res = await process.GetAllCities();
+                return Ok(res);
             }
-            catch (InvalidCityDataException ex)
+            catch (ApplicationException ex)
             {
-                // Handle invalid city data (e.g., missing or incorrect fields)
-                Console.WriteLine($"Error: {ex.Message}");
-                return BadRequest(new { Message = ex.Message });  // HTTP 400 Bad Request with the error message
+                // Log and return a 500 Internal Server Error with a detailed message
+                logger.LogError(ex, "An error occurred while retrieving all cities.");
+                return StatusCode(500, new { message = "An error occurred while retrieving cities. Please try again later." });
+            }
+            catch (Exception ex)
+            {
+                // Catch unexpected exceptions and return a generic 500 error
+                logger.LogError(ex, "Unexpected error occurred.");
+                return StatusCode(500, new { message = "An unexpected error occurred. Please try again later." });
+            }
+        }
+
+
+        [HttpPost("addCity")]
+        public async Task<IActionResult> AddCity([FromBody] City city)
+        {
+            try
+            {
+                var res = await process.AddCity(city);
+                logger.LogInformation("Row added successfully");
+                return Ok("Added Data Successfully");
             }
             catch (KeyAlreadyExistsException ex)
             {
-                // Handle case where the city already exists
-                Console.WriteLine($"Error: {ex.Message}");
-                return Conflict(new { Message = ex.Message });  // HTTP 409 Conflict if the city already exists
+                // Handle the case where the city already exists and return a more specific response
+                logger.LogWarning(ex.Message);
+                return Conflict(new { message = ex.Message });  // Return 409 Conflict for duplication error
+            }
+            catch (Exception ex)
+            {
+                // Log the general exception and return a BadRequest response
+                logger.LogError(ex.Message, ex);
+                return BadRequest(new { message = "An error occurred while adding the city. Please try again." });
+            }
+        }
+
+        [HttpPut("updateCity/{cityCode}")]
+        public async Task<IActionResult> UpdateCity(string cityCode, City city)
+        {
+            try
+            {
+                var updatedCity = await process.UpdateCity(cityCode, city);
+                return Ok(updatedCity); // Return 200 OK with the updated city
+            }
+            catch (KeyNotExistException ex)
+            {
+                // Handle city not found error, return 404 Not Found
+                logger.LogWarning($"City with code {cityCode} not found: {ex.Message}");
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidCityDataException ex)
+            {
+                // Handle invalid data provided for city, return 400 Bad Request
+                logger.LogWarning($"Invalid data for city update: {ex.Message}");
+                return BadRequest(new { message = ex.Message });
             }
             catch (Exception ex)
             {
                 // Catch any other unexpected errors
-                Console.WriteLine($"Unexpected error: {ex.Message}");
-                return StatusCode(500, new { Message = "An unexpected error occurred.", Details = ex.Message });  // HTTP 500 Internal Server Error
+                logger.LogError($"Unexpected error updating city: {ex.Message}", ex);
+                return StatusCode(500, new { message = "An unexpected error occurred while updating the city." });
             }
         }
 
 
-        // Update city details
-        [HttpPut("update/{cityCode}")]
-        public async Task<ActionResult<City>> UpdateCityAsync(string cityCode, City city)
+        [HttpGet("getCityByCode/{cityCode}")]
+        public async Task<IActionResult> GetCityByCode(string cityCode)
         {
             try
             {
-                // Call the repository to update the city details
-                var updatedCity = await _cityRepository.UpdateCityAsync(cityCode, city);
-
-                // If city is not found, return a 404 response
-                if (updatedCity == null)
-                {
-                    throw new KeyNotExistException($"City with CityCode {cityCode} does not exist.");
-                }
-
-                // Return the updated city
-                return Ok(updatedCity);  // HTTP 200 OK response with the updated city
-            }
-            catch (KeyNotExistException ex)
-            {
-                // Handle the case when the city does not exist
-                Console.WriteLine($"Error: {ex.Message}");
-                return NotFound(new { Message = ex.Message });  // HTTP 404 Not Found response
-            }
-            catch (InvalidCityDataException ex)
-            {
-                // Handle invalid city data (e.g., missing or incorrect fields)
-                Console.WriteLine($"Error: {ex.Message}");
-                return BadRequest(new { Message = ex.Message });  // HTTP 400 Bad Request response
-            }
-            
-            catch (Exception ex)
-            {
-                // Handle unexpected errors
-                Console.WriteLine($"Unexpected error: {ex.Message}");
-                return StatusCode(500, new { Message = "An unexpected error occurred.", Details = ex.Message });  // HTTP 500 Internal Server Error
-            }
-        }
-
-
-        // Delete a city by CityCode
-        [HttpDelete("Delete/{cityCode}")]
-        public async Task<ActionResult<bool>> DeleteCityAsync(string cityCode)
-        {
-            try
-            {
-                // Call the repository to delete the city
-                var result = await _cityRepository.DeleteCityAsync(cityCode);
-
-                // If the city does not exist, the repository will return false, so we handle that case
-                if (!result)
-                {
-                    return NotFound(new { Message = $"City with CityCode {cityCode} not found." });  // HTTP 404 Not Found
-                }
-
-                // Return success if the city is successfully marked as inactive (soft delete)
-                return Ok(new { Message = "City successfully marked as inactive." });  // HTTP 200 OK
-            }
-            catch (KeyNotExistException ex)
-            {
-                // Handle the case where the city with the provided cityCode does not exist
-                Console.WriteLine($"Error: {ex.Message}");
-                return NotFound(new { Message = ex.Message });  // HTTP 404 Not Found
-            }
-            catch (Exception ex)
-            {
-                // Handle any unexpected errors
-                Console.WriteLine($"Unexpected error: {ex.Message}");
-                return StatusCode(500, new { Message = "An unexpected error occurred.", Details = ex.Message });  // HTTP 500 Internal Server Error
-            }
-        }
-
-
-        // Update airport charge for a specific city
-        [HttpPut("update-airport-charge/{cityCode}")]
-        public async Task<ActionResult<City>> UpdateAirportChargeAsync(string cityCode, int airportCharge)
-        {
-            try
-            {
-                // Call the repository to update the airport charge
-                var updatedCity = await _cityRepository.UpdateAirportChargeAsync(cityCode, airportCharge);
-
-                // If no city was found, return a 404 Not Found
-                if (updatedCity == null)
-                {
-                    return NotFound(new { Message = $"City with CityCode {cityCode} not found." });  // HTTP 404 Not Found
-                }
-
-                // Return the updated city in the response
-                return Ok(updatedCity);  // HTTP 200 OK
-            }
-            catch (KeyNotExistException ex)
-            {
-                // Handle the case where the city does not exist
-                Console.WriteLine($"Error: {ex.Message}");
-                return NotFound(new { Message = ex.Message });  // HTTP 404 Not Found
-            }
-            
-            catch (Exception ex)
-            {
-                // Handle any unexpected errors
-                Console.WriteLine($"Unexpected error: {ex.Message}");
-                return StatusCode(500, new { Message = "An unexpected error occurred.", Details = ex.Message });  // HTTP 500 Internal Server Error
-            }
-        }
-
-
-        // Get all cities
-        
-        [HttpGet("all")]
-        public async Task<ActionResult<IEnumerable<City>>> GetAllCitiesAsync()
-        {
-            try
-            {
-                // Fetch all cities from the repository
-                var cities = await _cityRepository.GetAllDataAsync();
-
-                // Return the list of cities
-                return Ok(cities); // HTTP 200 OK
-            }
-            
-            catch (Exception ex)
-            {
-                // Handle any unexpected errors
-                Console.WriteLine($"Unexpected error: {ex.Message}");
-                return StatusCode(500, new { Message = "An unexpected error occurred.", Details = ex.Message }); // HTTP 500 Internal Server Error
-            }
-        }
-
-
-        // Get a city by CityCode
-        [HttpGet("ByCityCode/{cityCode}")]
-        public async Task<ActionResult<City>> GetCityByCityCodeAsync(string cityCode)
-        {
-            try
-            {
-                // Call the repository to get the city by city code
-                var city = await _cityRepository.GetCityByCityCodeAsync(cityCode);
-
-                // If the city is not found, throw a custom exception
-                if (city == null)
-                {
-                    throw new KeyNotExistException($"City with CityCode {cityCode} does not exist.");
-                }
-
-                // Return the city if found
+                var city = await process.GetCityByCityCode(cityCode);
                 return Ok(city);
             }
             catch (KeyNotExistException ex)
             {
-                // Handle the case when the city does not exist
-                Console.WriteLine($"Error: {ex.Message}");
-                return NotFound(new { Message = ex.Message }); // Return a 404 response with the error message
+                logger.LogWarning($"City not found with CityCode '{cityCode}': {ex.Message}");
+                return NotFound(new { message = ex.Message }); // Return 404 if city doesn't exist
             }
             catch (Exception ex)
             {
-                // Handle unexpected errors (e.g., database issues, server errors)
-                Console.WriteLine($"Unexpected error: {ex.Message}");
-                return StatusCode(500, new { Message = "An unexpected error occurred while retrieving the city.", Details = ex.Message }); // Return a 500 response
+                logger.LogError($"Error retrieving city by code '{cityCode}': {ex.Message}", ex);
+                return StatusCode(500, new { message = "An unexpected error occurred while retrieving the city." }); // Return 500 for general errors
+            }
+        }
+
+        [HttpDelete("deleteCity/{cityCode}")]
+        public async Task<IActionResult> DeleteCity(string cityCode)
+        {
+            try
+            {
+                var success = await process.DeleteCity(cityCode);
+                return success ? Ok("City deleted successfully.") : BadRequest("City deletion failed.");
+            }
+            catch (KeyNotExistException ex)
+            {
+                // Log a warning when the city doesn't exist
+                logger.LogWarning($"City with CityCode '{cityCode}' not found: {ex.Message}");
+                return NotFound(new { message = ex.Message });  // Return 404 for a non-existent city
+            }
+            catch (Exception ex)
+            {
+                // Log unexpected errors and return a generic 500 status code
+                logger.LogError($"Error deleting city with CityCode '{cityCode}': {ex.Message}", ex);
+                return StatusCode(500, new { message = "An error occurred while attempting to delete the city." });
+            }
+        }
+        [HttpPatch("updateAirportCharge/{cityCode}/{airportCharge}")]
+        public async Task<IActionResult> UpdateAirportCharge(string cityCode, int airportCharge)
+        {
+            try
+            {
+                var updatedCity = await process.UpdateAirportCharge(cityCode, airportCharge);
+                return Ok(updatedCity);
+            }
+            catch (KeyNotExistException ex)
+            {
+                // Log specific error for missing city and return 404
+                logger.LogWarning($"City with CityCode '{cityCode}' not found: {ex.Message}");
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                // Log unexpected errors and return 500
+                logger.LogError($"Error updating airport charge for CityCode '{cityCode}': {ex.Message}", ex);
+                return StatusCode(500, new { message = "An unexpected error occurred while updating the airport charge." });
+            }
+        }
+
+        //// New methods for additional functionality
+        //[HttpGet("getCitiesByCountry/{country}")]
+        //public async Task<IActionResult> GetCitiesByCountry(string country)
+        //{
+        //    try
+        //    {
+        //        var cities = await process.GetCitiesByCountry(country);
+        //        return Ok(cities);
+        //    }
+        //    catch (KeyNotFoundException ex)
+        //    {
+        //        logger.LogWarning(ex.Message);
+        //        return NotFound(ex.Message);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        logger.LogError(ex.Message, ex);
+        //        return BadRequest(ex.Message);
+        //    }
+        //}
+
+        [HttpGet("getCityByName/{cityName}")]
+        public async Task<IActionResult> GetCityByName(string cityName)
+        {
+            try
+            {
+                var city = await process.GetCityByName(cityName);
+                if (city == null)
+                {
+                    return NotFound(new { message = $"City with name '{cityName}' not found." });
+                }
+
+                return Ok(city);
+            }
+            catch (KeyNotExistException ex)
+            {
+                logger.LogWarning($"City not found: {ex.Message}");
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                logger.LogError($"Unexpected error: {ex.Message}", ex);
+                return StatusCode(500, new { message = "An error occurred while processing your request." });
             }
         }
 
     }
+
+
 }
+

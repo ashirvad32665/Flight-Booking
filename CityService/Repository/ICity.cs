@@ -8,5 +8,6 @@
         Task<City> UpdateAirportChargeAsync(string cityCode, int airportCharge);
         Task<IEnumerable<City>> GetAllDataAsync();
         Task<City> GetCityByCityCodeAsync(string cityCode);
+        Task<City> GetCityByNameAsync(string cityName);
     }
 }
