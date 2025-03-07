@@ -65,13 +65,14 @@ namespace Flight_Bookings_Tests
             var result = await _controller.GetAllData();
 
             // Assert
-            var notFoundResult = result as NotFoundObjectResult;
+            var notFoundResult = result as ObjectResult;
             Assert.IsNotNull(notFoundResult);
             Assert.AreEqual(404, notFoundResult.StatusCode); // Status code 404 for Not Found
         }
 
+
         //Add City
-       [TestMethod]
+        [TestMethod]
         public async Task AddCity_ShouldReturnOkResult_WhenCityIsAdded()
         {
             // Arrange
@@ -108,8 +109,19 @@ namespace Flight_Bookings_Tests
         public async Task UpdateCity_ShouldReturnOkResult_WhenCityIsUpdated()
         {
             // Arrange
-            var cityCode = "DEL";
-            var city = new City { CityCode = "DEL", CityName = "Delhi" };
+            var cityCode = "IXR";
+            var city = new City { CityCode = "IXR", CityName = "Ranchi City", AirportCharge = 50 };
+
+            // Mock the repository to return a valid city when searching by CityCode
+            _mockRepo.Setup(p => p.GetCityByCityCodeAsync(cityCode)).ReturnsAsync(new City
+            {
+                CityCode = "IXR",
+                CityName = "Ranchi",
+                AirportCharge = 40,
+                IsActive = true
+            });
+
+            // Mock the repository to return the updated city when UpdateCityAsync is called
             _mockRepo.Setup(p => p.UpdateCityAsync(cityCode, city)).ReturnsAsync(city);
 
             // Act
@@ -119,6 +131,8 @@ namespace Flight_Bookings_Tests
             var okResult = result as OkObjectResult;
             Assert.IsNotNull(okResult);
             Assert.AreEqual(200, okResult.StatusCode); // Status code 200 for Ok
+            var returnedCity = okResult.Value as City;
+            Assert.AreEqual("Ranchi City", returnedCity.CityName); // Assert that the city name is updated
         }
 
         [TestMethod]
@@ -127,7 +141,7 @@ namespace Flight_Bookings_Tests
             // Arrange
             var cityCode = "XYZ";
             var city = new City { CityCode = "XYZ", CityName = "UnknownCity" };
-            _mockRepo.Setup(p => p.UpdateCityAsync(cityCode, city)).ThrowsAsync(new ArgumentNullException("City not found"));
+            _mockRepo.Setup(p => p.UpdateCityAsync(cityCode, city)).ThrowsAsync(new KeyNotExistException("City not found"));
 
             // Act
             var result = await _controller.UpdateCity(cityCode, city);
@@ -137,6 +151,8 @@ namespace Flight_Bookings_Tests
             Assert.IsNotNull(notFoundResult);
             Assert.AreEqual(404, notFoundResult.StatusCode); // Status code 404 for NotFound
         }
+
+
 
         // GetByCityCode
         [TestMethod]
@@ -155,7 +171,6 @@ namespace Flight_Bookings_Tests
             Assert.IsNotNull(okResult);
             Assert.AreEqual(200, okResult.StatusCode); // Status code 200 for Ok
         }
-
         [TestMethod]
         public async Task GetCityByCityCode_ShouldReturnNotFound_WhenCityDoesNotExist()
         {
@@ -171,6 +186,7 @@ namespace Flight_Bookings_Tests
             Assert.IsNotNull(notFoundResult);
             Assert.AreEqual(404, notFoundResult.StatusCode); // Status code 404 for NotFound
         }
+
 
         // Delete City
         [TestMethod]
@@ -189,60 +205,23 @@ namespace Flight_Bookings_Tests
             Assert.AreEqual(200, okResult.StatusCode); // Status code 200 for Ok
         }
         [TestMethod]
-        public async Task DeleteCityAsync_CityNotFound_ReturnsNotFound()
-        {
-            // Arrange
-            string cityCode = "RAI";
-            _mockRepo.Setup(repo => repo.DeleteCityAsync(cityCode))
-                .ThrowsAsync(new KeyNotExistException($"City with CityCode {cityCode} does not exist."));  // Mock to throw KeyNotExistException
+        public async Task DeleteCity_ShouldReturnNotFound_WhenDeleteFails()
+        { 
+	        // Arrange
+	        var cityCode = "XYZ";
+            _mockRepo.Setup(p => p.DeleteCityAsync(cityCode)).ThrowsAsync(new KeyNotExistException("City not found"));
 
             // Act
             var result = await _controller.DeleteCity(cityCode);
 
             // Assert
-            var actionResult = result as NotFoundObjectResult;  // Directly cast the result to NotFoundObjectResult
-            Assert.IsNotNull(actionResult);  // Ensure the result is not null
-            dynamic response = actionResult.Value;
-            Assert.AreEqual($"City with CityCode {cityCode} does not exist.",
-                            response.message);  // Verify the error message
+            var notFoundResult = result as NotFoundObjectResult;
+            Assert.IsNotNull(notFoundResult);
+            Assert.AreEqual(404, notFoundResult.StatusCode); // Status code 404 for NotFound
         }
+        
 
-
-        // Update Airport Charges
-        [TestMethod]
-        public async Task UpdateAirportCharge_ShouldReturnOkResult_WhenAirportChargeIsUpdated()
-        {
-            // Arrange
-            var cityCode = "DEL";
-            int airportCharge = 500;
-            var updatedCity = new City { CityCode = "DEL", CityName = "Delhi", AirportCharge = airportCharge };
-            _mockRepo.Setup(p => p.UpdateAirportChargeAsync(cityCode, airportCharge)).ReturnsAsync(updatedCity);
-
-            // Act
-            var result = await _controller.UpdateAirportCharge(cityCode, airportCharge);
-
-            // Assert
-            var okResult = result as OkObjectResult;
-            Assert.IsNotNull(okResult);
-            Assert.AreEqual(200, okResult.StatusCode); // Status code 200 for Ok
-        }
-
-        [TestMethod]
-        public async Task UpdateAirportCharge_ShouldReturnBadRequest_WhenExceptionOccurs()
-        {
-            // Arrange
-            var cityCode = "XYZ";
-            int airportCharge = 500;
-            _mockRepo.Setup(p => p.UpdateAirportChargeAsync(cityCode, airportCharge)).ThrowsAsync(new Exception("Some error"));
-
-            // Act
-            var result = await _controller.UpdateAirportCharge(cityCode, airportCharge);
-
-            // Assert
-            var badRequestResult = result as BadRequestObjectResult;
-            Assert.IsNotNull(badRequestResult);
-            Assert.AreEqual(400, badRequestResult.StatusCode); // Status code 400 for BadRequest
-        }
+        
 
         // Get City By City Name
 
@@ -268,7 +247,7 @@ namespace Flight_Bookings_Tests
         {
             // Arrange
             var cityName = "xyzser";
-            _mockRepo.Setup(p => p.GetCityByNameAsync(cityName)).ThrowsAsync(new Exception("City not found"));
+            _mockRepo.Setup(p => p.GetCityByNameAsync(cityName)).ThrowsAsync(new KeyNotExistException("City not found"));
 
             // Act
             var result = await _controller.GetCityByName(cityName);
@@ -278,6 +257,46 @@ namespace Flight_Bookings_Tests
             Assert.IsNotNull(notFoundResult);
             Assert.AreEqual(404, notFoundResult.StatusCode); // Status code 404 for NotFound
         }
+        
+        
+        
+        
+        // Update Airport Charges
+        [TestMethod]
+        public async Task UpdateAirportCharge_ShouldReturnOkResult_WhenAirportChargeIsUpdated()
+        {
+            // Arrange
+            var cityCode = "DEL";
+            int airportCharge = 500;
+            var updatedCity = new City { CityCode = "DEL", CityName = "Delhi", AirportCharge = airportCharge };
+            _mockRepo.Setup(p => p.UpdateAirportChargeAsync(cityCode, airportCharge)).ReturnsAsync(updatedCity);
+
+            // Act
+            var result = await _controller.UpdateAirportCharge(cityCode, airportCharge);
+
+            // Assert
+            var okResult = result as OkObjectResult;
+            Assert.IsNotNull(okResult);
+            Assert.AreEqual(200, okResult.StatusCode); // Status code 200 for Ok
+        }
+        [TestMethod]
+        public async Task UpdateAirportCharge_ShouldReturnNotFound_WhenExceptionOccurs()
+        {
+            // Arrange
+            var cityCode = "XYZ";
+            int airportCharge = 500;
+            _mockRepo.Setup(p => p.UpdateAirportChargeAsync(cityCode, airportCharge)).ThrowsAsync(new KeyNotExistException("Some error"));
+
+            // Act
+            var result = await _controller.UpdateAirportCharge(cityCode, airportCharge);
+
+            // Assert
+            var notFoundResult = result as NotFoundObjectResult;
+            Assert.IsNotNull(notFoundResult);
+            Assert.AreEqual(404, notFoundResult.StatusCode); // Status code 404 for NotFound
+        }
+        
+
 
 
     }

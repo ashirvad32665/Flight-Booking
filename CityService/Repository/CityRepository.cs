@@ -188,7 +188,7 @@ namespace CityService.Repository
             catch (Exception ex)
             {
                 Console.WriteLine($"Error fetching cities: {ex.Message}");
-                throw new ApplicationException("An error occurred while retrieving cities from the database.", ex);
+                throw ;
             }
         }
 
@@ -201,11 +201,11 @@ namespace CityService.Repository
                     .Where(c => c.CityCode == cityCode)
                     .FirstOrDefaultAsync();
 
-                //if (city == null)
-                //{
-                //    // Throw custom exception when city is not found
-                //    throw new KeyNotExistException($"City with CityCode '{cityCode}' does not exist.");
-                //}
+                if (city == null)
+                {
+                    // Throw custom exception when city is not found
+                    throw new KeyNotExistException($"City with CityCode '{cityCode}' does not exist.");
+                }
 
                 return city; // Return the city if found
             }

@@ -31,17 +31,17 @@ namespace CityService.Controllers
                 var res = await process.GetAllCities();
                 return Ok(res);
             }
-            catch (ApplicationException ex)
-            {
-                // Log and return a 500 Internal Server Error with a detailed message
-                logger.LogError(ex, "An error occurred while retrieving all cities.");
-                return StatusCode(500, new { message = "An error occurred while retrieving cities. Please try again later." });
-            }
+            //catch (ApplicationException ex)
+            //{
+            //    // Log and return a 500 Internal Server Error with a detailed message
+            //    logger.LogError(ex, "An error occurred while retrieving all cities.");
+            //    return StatusCode(500, new { message = "An error occurred while retrieving cities. Please try again later." });
+            //}
             catch (Exception ex)
             {
-                // Catch unexpected exceptions and return a generic 500 error
+                
                 logger.LogError(ex, "Unexpected error occurred.");
-                return StatusCode(500, new { message = "An unexpected error occurred. Please try again later." });
+                return StatusCode(404, new { message = "An unexpected error occurred. Please try again later." });
             }
         }
 

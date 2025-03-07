@@ -15,15 +15,12 @@ namespace CityService.Process
             {
                 return await _repo.GetAllDataAsync();
             }
-            catch (ApplicationException ex)
-            {
-                // Log and rethrow the exception with more context for higher layers
-                throw new ApplicationException("Process Layer: Unable to retrieve cities.", ex);
-            }
+            
             catch (Exception ex)
             {
-                // General exception handling
-                throw new ApplicationException("An unexpected error occurred in the process layer.", ex);
+               
+                throw new Exception("An unexpected error occurred in the process layer.", ex);
+                
             }
         }
 
@@ -42,7 +39,7 @@ namespace CityService.Process
 
         public async Task<City> UpdateCity(string cityCode, City city)
         {
-            // Ensure city data is valid before attempting repository action
+            //Ensure city data is valid before attempting repository action
             if (string.IsNullOrEmpty(city.CityName) || city.AirportCharge < 0)
             {
                 throw new InvalidCityDataException("City Name is required and Airport Charge cannot be negative.");
