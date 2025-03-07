@@ -10,6 +10,7 @@ using CityService.Repository;
 using CommonUse;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace Flight_Bookings_Tests
@@ -20,6 +21,7 @@ namespace Flight_Bookings_Tests
         private Mock<ICity> _mockRepo;
         private CityProcess _cityProcess;
         private CityController _controller;
+        private Mock<ILogger<CityController>> _mockLogger;
 
         [TestInitialize]
         public void Setup()
@@ -27,11 +29,14 @@ namespace Flight_Bookings_Tests
             // Mock the ICity repository
             _mockRepo = new Mock<ICity>();
 
-            // Pass the mocked ICity repository to CityProcess
+            // Mock the ILogger<CityController>
+            _mockLogger = new Mock<ILogger<CityController>>();
+
+            // Pass the mocked ICity repository and ILogger to CityProcess
             _cityProcess = new CityProcess(_mockRepo.Object);
 
-            // Initialize the controller with the CityProcess instance
-            _controller = new CityController(_cityProcess);
+            // Initialize the controller with the CityProcess and mocked ILogger<CityController>
+            _controller = new CityController(_cityProcess, _mockLogger.Object);
         }
 
         // GetAllData
@@ -183,22 +188,25 @@ namespace Flight_Bookings_Tests
             Assert.IsNotNull(okResult);
             Assert.AreEqual(200, okResult.StatusCode); // Status code 200 for Ok
         }
-
         [TestMethod]
-        public async Task DeleteCity_ShouldReturnBadRequest_WhenDeleteFails()
+        public async Task DeleteCityAsync_CityNotFound_ReturnsNotFound()
         {
             // Arrange
-            var cityCode = "XYZ";
-            _mockRepo.Setup(p => p.DeleteCityAsync(cityCode)).ReturnsAsync(false);
+            string cityCode = "RAI";
+            _mockRepo.Setup(repo => repo.DeleteCityAsync(cityCode))
+                .ThrowsAsync(new KeyNotExistException($"City with CityCode {cityCode} does not exist."));  // Mock to throw KeyNotExistException
 
             // Act
             var result = await _controller.DeleteCity(cityCode);
 
             // Assert
-            var badRequestResult = result as BadRequestObjectResult;
-            Assert.IsNotNull(badRequestResult);
-            Assert.AreEqual(400, badRequestResult.StatusCode); // Status code 400 for BadRequest
+            var actionResult = result as NotFoundObjectResult;  // Directly cast the result to NotFoundObjectResult
+            Assert.IsNotNull(actionResult);  // Ensure the result is not null
+            dynamic response = actionResult.Value;
+            Assert.AreEqual($"City with CityCode {cityCode} does not exist.",
+                            response.message);  // Verify the error message
         }
+
 
         // Update Airport Charges
         [TestMethod]
