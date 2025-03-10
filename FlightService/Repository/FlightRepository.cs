@@ -1,4 +1,5 @@
 ﻿
+using CommonUse;
 using Microsoft.EntityFrameworkCore;
 
 namespace FlightService.Repository
@@ -14,9 +15,9 @@ namespace FlightService.Repository
         {
             try
             {
-                if (flight == null) throw new ArgumentException($"{flight} Data can't be null");
+                if (flight == null) throw new ArgumentException($"{flight} Enter valid Data");
                 var res = await _context.Flights.AnyAsync(c => c.FlightId == flight.FlightId && c.IsActive);
-                if (res) throw new KeyNotFoundException("Id already Exist");
+                if (res) throw new KeyAlreadyExistsException("Id Already Exist");
                 _context.Flights.Add(flight);
                 await _context.SaveChangesAsync();
                 return true;
@@ -37,7 +38,7 @@ namespace FlightService.Repository
                     .ToListAsync();
                 return res;
             }
-            catch (Exception) { throw; }
+            catch (KeyNotExistException) { throw; }
         }
 
         public async Task<Flight> GetFlightById(int flightId)
@@ -61,7 +62,7 @@ namespace FlightService.Repository
                 if (flightId < 0) throw new ArgumentOutOfRangeException("Id can't be < 0");
                 var res = await _context.Flights
                     .FirstOrDefaultAsync(c => c.FlightId == flightId && c.IsActive);
-                if (res is null) throw new KeyNotFoundException("Id not found");
+                if (res is null) throw new KeyNotExistException("Id not found");
                 //dbContext.Flights.Remove(res);
                 res.IsActive = false;
                 await _context.SaveChangesAsync();
@@ -76,7 +77,7 @@ namespace FlightService.Repository
             {
                 if (flightId < 0 || availableSeat < 0) throw new ArgumentException("Data can't be null");
                 var res = await _context.Flights.FirstOrDefaultAsync(c => c.FlightId == flightId && c.IsActive);
-                if (res is null) throw new KeyNotFoundException("Id not found");
+                if (res is null) throw new KeyNotExistException("Id not found");
                 res.AvailableSeats = availableSeat;
                 await _context.SaveChangesAsync();
                 return res;
@@ -93,16 +94,31 @@ namespace FlightService.Repository
                 if (flight is null) throw new ArgumentException("Data can't be null");
                 var res = await _context.Flights.FirstOrDefaultAsync(c => c.FlightId == flightId && c.IsActive);
                 if (res is null) throw new KeyNotFoundException("Id not found");
+                
+                res.FlightNo = flight.FlightNo;
                 res.FromCity = flight.FromCity;
                 res.ToCity = flight.ToCity;
-                res.FlightNo = flight.FlightNo;
                 res.DepartureDate = flight.DepartureDate;
                 res.DepartureTime = flight.DepartureTime;
-                res.ArrivalTime = res.ArrivalTime;
+                res.ArrivalTime = flight.ArrivalTime;
+                res.AvailableSeats=flight.AvailableSeats;
                 await _context.SaveChangesAsync();
                 return res;
             }
             catch (Exception) { throw; }
         }
+        //public async Task<Flight> UpdateSeatOnBooking(int flightId)
+        //{
+        //    try
+        //    {
+               
+        //        var res = await _context.Flights.FirstOrDefaultAsync(c => c.FlightId == flightId && c.IsActive);
+        //        if (res is null) throw new KeyNotFoundException("Id not found");
+        //        res.AvailableSeats--;
+        //        await _context.SaveChangesAsync();
+        //        return res;
+        //    }
+        //    catch (Exception) { throw; }
+        //}
     }
 }

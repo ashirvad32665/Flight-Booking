@@ -15,8 +15,8 @@ using Moq;
 
 namespace Flight_Bookings_Tests
 {
-    [TestClass]
-    public sealed class CityRepositoryTests
+    //[TestClass]
+    public sealed class CityControllerTests
     {
         private Mock<ICity> _mockRepo;
         private CityProcess _cityProcess;

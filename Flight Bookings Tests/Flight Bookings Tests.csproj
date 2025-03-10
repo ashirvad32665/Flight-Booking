@@ -27,6 +27,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CityService\CityService.csproj" />
+    <ProjectReference Include="..\FlightService\FlightService.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -7,8 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CityService.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
+    
     public class CityController : ControllerBase
     {
         private readonly CityProcess process;
@@ -23,7 +22,7 @@ namespace CityService.Controllers
 
 
 
-        [HttpGet("All")]
+        [HttpGet("all")]
         public async Task<IActionResult> GetAllData()
         {
             try
