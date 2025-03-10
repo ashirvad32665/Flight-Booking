@@ -4,11 +4,11 @@
     {
         Task<bool> AddFareForFlight(Fare fare);
         Task<bool> RemoveFareForFlight(int fareId);
-        Task<Fare> UpdateBasePriceByFareId(int fareId);
-        Task<Fare> UpdateBasePriceByFlightId(int flightId);
+        Task<Fare> UpdateFareByFareId(int fareId, decimal basePrice, decimal convenienceFee);
+        Task<Fare> UpdateFareByFlightId(int flightId, decimal basePrice, decimal convenienceFee);
         Task<Fare> GetFareByFlightId(int flightId);
         Task<Fare> GetFareByFareID(int fareId);
 
-
+        Task<decimal> GetTotalFare(int fareId);
     }
 }

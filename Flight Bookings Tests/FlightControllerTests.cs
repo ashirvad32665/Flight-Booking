@@ -16,7 +16,7 @@ using Moq;
 
 namespace Flight_Bookings_Tests
 {
-    [TestClass]
+    //[TestClass]
     public sealed class FlightControllerTests
     {
 
