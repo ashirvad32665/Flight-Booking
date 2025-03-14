@@ -16,3 +16,9 @@ public class PassengerDTO
     public string Email { get; set; }
     public string Gender { get; set; }
 }
+public class BookingResponse
+{
+    public string Message { get; set; }
+    public string ReferenceNumber { get; set; }
+}
+

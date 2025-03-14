@@ -26,7 +26,7 @@ namespace BookingService.Controllers
             {
                 //var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
                 string referenceNumber = await process.BookFlightAsync(request);
-                return Ok(new { Message = "Booking successful", ReferenceNumber = referenceNumber });
+                return Ok(new BookingResponse{ Message = "Booking successful", ReferenceNumber = referenceNumber });
             }
             catch (Exception ex)
             {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Net;
 using System.Net.Http.Json;
@@ -80,12 +81,17 @@ namespace Flight_Bookings_Tests
             // Act
             var result = await _controller.BookFlight(request);
 
+            
+
             // Assert
             var okResult = result as OkObjectResult;
             Assert.IsNotNull(okResult); // Check that the result is Ok
 
-            // Ensure the returned value is an anonymous object with "Message" and "ReferenceNumber"
-            dynamic response = okResult.Value;
+            // Deserialize the response into a strongly typed object
+            var response = okResult.Value as BookingResponse;
+            Assert.IsNotNull(response); // Ensure the response is not null
+
+            // Assert the returned properties
             Assert.AreEqual("Booking successful", response.Message); // Assert the success message
             Assert.AreEqual(referenceNumber, response.ReferenceNumber); // Assert the reference number
 
