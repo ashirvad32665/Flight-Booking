@@ -89,12 +89,13 @@ namespace FareService.Repository
         }
 
         // Method to get fare by FlightId
-        public async Task<Fare> GetFareByFlightId(int flightId)
+        public async Task<decimal> GetFareByFlightId(int flightId)
         {
             try
             {
-                return await _context.Fares
+                var fare=await _context.Fares
                                       .FirstOrDefaultAsync(f => f.FlightId == flightId);
+                return fare.BasePrice+fare.ConvenienceFee;
             }
             catch (Exception ex)
             {
@@ -104,12 +105,13 @@ namespace FareService.Repository
         }
 
         // Method to get fare by FareId
-        public async Task<Fare> GetFareByFareID(int fareId)
+        public async Task<decimal> GetFareByFareID(int fareId)
         {
             try
             {
-                return await _context.Fares
+                var fare= await _context.Fares
                                       .FirstOrDefaultAsync(f => f.FareId == fareId);
+                return fare.BasePrice + fare.ConvenienceFee;
             }
             catch (Exception ex)
             {

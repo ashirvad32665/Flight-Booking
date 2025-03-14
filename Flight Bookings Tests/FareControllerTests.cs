@@ -250,12 +250,14 @@ namespace Flight_Bookings_Tests
             Assert.IsTrue(((string)statusCodeResult.Value).Contains("Internal server error"));  // Assert error message is returned
         }
         [TestMethod]
-        public async Task GetFareByFlightId_ShouldReturnOk_WhenFareExists()
+        public async Task GetFareByFlightId_ShouldReturnFare_WhenFareExists()
         {
             // Arrange
-            var flightId = 1;
-            var fare = new Fare { FlightId = flightId, BasePrice = 500, ConvenienceFee = 50 };
-            _mockRepo.Setup(p => p.GetFareByFlightId(flightId)).ReturnsAsync(fare); // Simulate fare found
+            int flightId = 1;
+            decimal expectedFare = 150.50m;
+
+            // Mock the repository method to return a fare value
+            _mockRepo.Setup(repo => repo.GetFareByFlightId(flightId)).ReturnsAsync(expectedFare);
 
             // Act
             var result = await _controller.GetFareByFlightId(flightId);
@@ -263,20 +265,18 @@ namespace Flight_Bookings_Tests
             // Assert
             var okResult = result as OkObjectResult;
             Assert.IsNotNull(okResult);
-            Assert.AreEqual(200, okResult.StatusCode);
-            Assert.IsNotNull(okResult.Value);
-            var returnedFare = okResult.Value as Fare;
-            Assert.AreEqual(flightId, returnedFare.FlightId);  // Ensure correct fare is returned
-            Assert.AreEqual(500, returnedFare.BasePrice);  // Assert that the base price is correct
-            Assert.AreEqual(50, returnedFare.ConvenienceFee);  // Assert that the convenience fee is correct
+            Assert.AreEqual(expectedFare, okResult.Value);
         }
 
         [TestMethod]
         public async Task GetFareByFlightId_ShouldReturnNotFound_WhenFareDoesNotExist()
         {
             // Arrange
-            var flightId = 1;
-            _mockRepo.Setup(p => p.GetFareByFlightId(flightId)).ReturnsAsync((Fare)null); // Simulate fare not found
+            int flightId = 1;
+            decimal fare = 0; // Assume 0 means no fare found
+
+            // Mock the repository method to return a fare of 0 (not found)
+            _mockRepo.Setup(repo => repo.GetFareByFlightId(flightId)).ReturnsAsync(fare);
 
             // Act
             var result = await _controller.GetFareByFlightId(flightId);
@@ -284,8 +284,7 @@ namespace Flight_Bookings_Tests
             // Assert
             var notFoundResult = result as NotFoundObjectResult;
             Assert.IsNotNull(notFoundResult);
-            Assert.AreEqual(404, notFoundResult.StatusCode);
-            Assert.AreEqual("Fare not found.", notFoundResult.Value);  // Assert that "Fare not found." is returned
+            Assert.AreEqual("Fare not found.", notFoundResult.Value);
         }
 
         [TestMethod]
@@ -310,8 +309,8 @@ namespace Flight_Bookings_Tests
         {
             // Arrange
             var fareId = 1;
-            var fare = new Fare { FareId = fareId, BasePrice = 500, ConvenienceFee = 50 };
-            _mockRepo.Setup(p => p.GetFareByFareID(fareId)).ReturnsAsync(fare); // Simulate fare found
+            decimal expectedFare = 150.50m;
+            _mockRepo.Setup(p => p.GetFareByFareID(fareId)).ReturnsAsync(expectedFare); // Simulate fare found
 
             // Act
             var result = await _controller.GetFareByFareID(fareId);
@@ -319,12 +318,7 @@ namespace Flight_Bookings_Tests
             // Assert
             var okResult = result as OkObjectResult;
             Assert.IsNotNull(okResult);
-            Assert.AreEqual(200, okResult.StatusCode);  // Assert that the status code is OK (200)
-            Assert.IsNotNull(okResult.Value);
-            var returnedFare = okResult.Value as Fare;
-            Assert.AreEqual(fareId, returnedFare.FareId);  // Assert that the returned fare has the correct FareId
-            Assert.AreEqual(500, returnedFare.BasePrice);  // Assert that the returned fare has the correct BasePrice
-            Assert.AreEqual(50, returnedFare.ConvenienceFee);  // Assert that the returned fare has the correct ConvenienceFee
+            Assert.AreEqual(expectedFare, okResult.Value);
         }
 
         [TestMethod]
@@ -332,7 +326,8 @@ namespace Flight_Bookings_Tests
         {
             // Arrange
             var fareId = 1;
-            _mockRepo.Setup(p => p.GetFareByFareID(fareId)).ReturnsAsync((Fare)null); // Simulate fare not found
+            decimal fare = 0;
+            _mockRepo.Setup(p => p.GetFareByFareID(fareId)).ReturnsAsync(fare); // Simulate fare not found
 
             // Act
             var result = await _controller.GetFareByFareID(fareId);
@@ -340,8 +335,7 @@ namespace Flight_Bookings_Tests
             // Assert
             var notFoundResult = result as NotFoundObjectResult;
             Assert.IsNotNull(notFoundResult);
-            Assert.AreEqual(404, notFoundResult.StatusCode);  // Assert that the status code is NotFound (404)
-            Assert.AreEqual("Fare not found.", notFoundResult.Value);  // Assert the correct message is returned
+            Assert.AreEqual("Fare not found.", notFoundResult.Value);
         }
 
         [TestMethod]

@@ -25,11 +25,11 @@ namespace FareService.Process
         {
             return await _repository.UpdateFareByFlightId(flightId, basePrice, convenienceFee);
         }
-        public async Task<Fare> GetFareByFlightId(int flightId)
+        public async Task<decimal> GetFareByFlightId(int flightId)
         {
             return await _repository.GetFareByFlightId(flightId);
         }
-        public async Task<Fare> GetFareByFareID(int fareId)
+        public async Task<decimal> GetFareByFareID(int fareId)
         {
             return await _repository.GetFareByFareID(fareId);
         }

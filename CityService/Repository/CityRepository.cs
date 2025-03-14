@@ -248,5 +248,12 @@ namespace CityService.Repository
             }
         }
 
+        //public async Task<List<City>> SearchCitiesAsync(string query)
+        //{
+        //    return await _context.Cities
+        //        .Where(c => c.CityName.Contains(query) || c.CityCode.Contains(query))
+        //        .ToListAsync();
+        //}
+
     }
 }

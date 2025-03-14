@@ -1,4 +1,5 @@
 using System.Reflection;
+using CommonUse;
 using FareService.Process;
 using FareService.Repository;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,8 @@ builder.Services.AddDbContext<FareDbContext>(options => options.UseSqlServer(bui
 
 builder.Services.AddScoped<IFare, FareRepository>();
 builder.Services.AddScoped<FareProcess>();
+
+builder.Services.AddScoped<TokenValidator>();
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -29,7 +32,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+app.UseCors(policyConfig =>
+{
+    policyConfig.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod();
+});
 app.UseAuthorization();
 
 app.MapControllers();

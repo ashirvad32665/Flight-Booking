@@ -2,10 +2,14 @@
 using CommonUse;
 using FlightService.Process;
 using FlightService.Repository;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FlightService.Controllers
 {
+    [Route("api/[controller]")]
+    [ApiController]
+    [EnableCors]
     public class FlightController : ControllerBase
     {
         private readonly FlightProcess _process;
@@ -64,8 +68,8 @@ namespace FlightService.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        [HttpPatch("updateSeat/{flightId}")]
-        public async Task<ActionResult<Flight>> UpdateAvailableSeat(int flightId, int AvailableSeat)
+        [HttpPut("update/{flightId}")]
+        public async Task<ActionResult<Flight>> UpdateAvailableSeat(int flightId,[FromQuery] int AvailableSeat)
         {
             try
             {
@@ -116,5 +120,6 @@ namespace FlightService.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        // Update available seats
     }
 }

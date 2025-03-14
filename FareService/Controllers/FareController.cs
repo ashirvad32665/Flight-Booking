@@ -1,12 +1,16 @@
-﻿using FareService.Process;
+﻿using CommonUse;
+using FareService.Process;
 using FareService.Repository;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FareService.Controllers
 {
-    //[Route("api/[controller]")]
-    //[ApiController]
+    [Route("api/[controller]")]
+    [ApiController]
+    [EnableCors]
+
     public class FareController : ControllerBase
     {
         private readonly FareProcess _process;
@@ -89,13 +93,14 @@ namespace FareService.Controllers
         }
 
         // GET: api/Fare/GetFareByFlightId/{flightId}
+        [CustomAuthentication(Roles ="User")]
         [HttpGet("get-fare-by-flight/{flightId}")]
         public async Task<IActionResult> GetFareByFlightId(int flightId)
         {
             try
             {
                 var fare = await _process.GetFareByFlightId(flightId);
-                if (fare == null)
+                if (fare == 0)
                     return NotFound("Fare not found.");
                 return Ok(fare);
             }
@@ -113,7 +118,7 @@ namespace FareService.Controllers
             try
             {
                 var fare = await _process.GetFareByFareID(fareId);
-                if (fare == null)
+                if (fare == 0)
                     return NotFound("Fare not found.");
                 return Ok(fare);
             }

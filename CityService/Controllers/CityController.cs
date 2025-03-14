@@ -2,11 +2,17 @@
 using CityService.Process;
 using CityService.Repository;
 using CommonUse;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CityService.Controllers
 {
+    [Route("api/[controller]")]
+    [ApiController]
+    [EnableCors]
+
     
     public class CityController : ControllerBase
     {
@@ -21,8 +27,9 @@ namespace CityService.Controllers
         //}
 
 
-
+        
         [HttpGet("all")]
+        //[CustomAuthentication(Roles = "Admin, User")]
         public async Task<IActionResult> GetAllData()
         {
             try
@@ -44,7 +51,7 @@ namespace CityService.Controllers
             }
         }
 
-
+        //[CustomAuthentication(Roles = "Admin")]
         [HttpPost("addCity")]
         public async Task<IActionResult> AddCity([FromBody] City city)
         {
@@ -67,7 +74,7 @@ namespace CityService.Controllers
                 return BadRequest(new { message = "An error occurred while adding the city. Please try again." });
             }
         }
-
+        //[CustomAuthentication(Roles = "Admin")]
         [HttpPut("updateCity/{cityCode}")]
         public async Task<IActionResult> UpdateCity(string cityCode, City city)
         {
@@ -96,7 +103,7 @@ namespace CityService.Controllers
             }
         }
 
-
+        //[CustomAuthentication(Roles = "Admin, User")]
         [HttpGet("getCityByCode/{cityCode}")]
         public async Task<IActionResult> GetCityByCode(string cityCode)
         {
@@ -116,7 +123,7 @@ namespace CityService.Controllers
                 return StatusCode(500, new { message = "An unexpected error occurred while retrieving the city." }); // Return 500 for general errors
             }
         }
-
+       //[CustomAuthentication(Roles = "Admin")]
         [HttpDelete("deleteCity/{cityCode}")]
         public async Task<IActionResult> DeleteCity(string cityCode)
         {
@@ -138,6 +145,7 @@ namespace CityService.Controllers
                 return StatusCode(500, new { message = "An error occurred while attempting to delete the city." });
             }
         }
+        //[CustomAuthentication(Roles = "Admin")]
         [HttpPatch("updateAirportCharge/{cityCode}/{airportCharge}")]
         public async Task<IActionResult> UpdateAirportCharge(string cityCode, int airportCharge)
         {
@@ -180,7 +188,7 @@ namespace CityService.Controllers
         //        return BadRequest(ex.Message);
         //    }
         //}
-
+        //[CustomAuthentication(Roles = "Admin, User")]
         [HttpGet("getCityByName/{cityName}")]
         public async Task<IActionResult> GetCityByName(string cityName)
         {
@@ -205,6 +213,8 @@ namespace CityService.Controllers
                 return StatusCode(500, new { message = "An error occurred while processing your request." });
             }
         }
+        // Get airport charges by flight Id??
+
 
     }
 
