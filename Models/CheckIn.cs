@@ -1,15 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace CheckInService.Models;
+namespace Models;
 
 public partial class CheckIn
 {
-    public int CheckInId { get; set; }
+    public int Id { get; set; }
 
-    public int BookingId { get; set; }
+    public string CheckInId { get; set; } = null!;
 
-    public string Status { get; set; } = null!;
+    public string ReferenceNumber { get; set; } = null!;
 
-    public bool IsActive { get; set; }
+    public string SeatNumber { get; set; } = null!;
+
+    public DateTime? CheckInTime { get; set; }
 }

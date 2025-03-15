@@ -1,4 +1,5 @@
 ﻿using CheckInService.Process;
+using CheckInService.Repository;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,19 +14,35 @@ namespace CheckInService.Controllers
         {
             this.process = process;
         }
-        [HttpPost("{bookingId}")]
-        public async Task<IActionResult> CheckIn(int bookingId)
+
+        // CHECK-IN A PASSENGER
+        [HttpPost("checkin")]
+        public async Task<IActionResult> CheckInPassenger([FromBody] CheckInRequest request)
         {
-            var (success, message, confirmationNumber) = await process.CheckInAsync(bookingId);
-
-            if (!success)
-                return BadRequest(new { Message = message });
-
-            return Ok(new
+            try
             {
-                Message = message,
-                ConfirmationNumber = confirmationNumber
-            });
+                var response = await process.CheckInAsync(request);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Error = ex.Message });
+            }
+        }
+
+        // GET CHECK-IN DETAILS
+        [HttpGet("{checkInId}")]
+        public async Task<IActionResult> GetCheckInDetails(string checkInId)
+        {
+            try
+            {
+                var response = await process.GetCheckInDetailsAsync(checkInId);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Error = ex.Message });
+            }
         }
     }
 }

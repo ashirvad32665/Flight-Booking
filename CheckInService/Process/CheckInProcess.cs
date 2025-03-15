@@ -1,4 +1,4 @@
-﻿using CheckInService.Models;
+﻿
 using CheckInService.Repository;
 using System.Text.Json;
 
@@ -6,45 +6,33 @@ namespace CheckInService.Process
 {
     public class CheckInProcess
     {
-        ICheckIn repo;
-        private readonly HttpClient http;
-        public CheckInProcess(ICheckIn repo, HttpClient http, IConfiguration config)
-        {
-            this.repo = repo;
-            this.http = http;
+        private readonly HttpClient _httpClient;
+        private readonly IConfiguration _configuration;
+        private readonly ICheckIn _checkInRepository;
 
-            //this.http.BaseAddress = new Uri("api:bookingservice"); //to be read from config file
+        public CheckInProcess(HttpClient httpClient, IConfiguration configuration, ICheckIn checkInRepository)
+        {
+            _httpClient = httpClient;
+            _configuration = configuration;
+            _checkInRepository = checkInRepository;
         }
-        public async Task<(bool success, string message, string seatAlloted)> CheckInAsync(int bookingId)
-        {
-            var response = await http.GetAsync("http://localhost:7005/api/bookings/{bookingId}");
-            //call the bookingId controller in booking services
-            if (!response.IsSuccessStatusCode)
-            {
-                return (false, "Booking not found", string.Empty);
-            }
-            var bookingData = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-            var bookingStatus = bookingData.RootElement.GetProperty("Status").GetString();
-            if (bookingStatus == "Checked-In") return (false, "Already Exist", string.Empty);
-            var updatedResponse = await http.PutAsync("http://localhost:7005/api/booking/checkin/{bookingId}", null);
-            if (!updatedResponse.IsSuccessStatusCode)
-            {
-                return (false, "Check-in failed", string.Empty);
 
-            }
-            var seat = Guid.NewGuid().ToString();
-            var checkIn = new CheckIn
+        public async Task<CheckInResponse> CheckInAsync(CheckInRequest request)
+        {
+            string bookingServiceUrl = _configuration["ServiceUrls:BookingService"];
+
+            // Verify booking reference from Booking Service
+            var bookingResponse = await _httpClient.GetAsync($"{bookingServiceUrl}/api/booking/{request.ReferenceNumber}");
+            if (!bookingResponse.IsSuccessStatusCode)
             {
-                BookingId = bookingId,
-                Status = "Check-In",
-                IsActive = true,
-            };
-            bool isSaved = await repo.CheckInAsync(checkIn);
-            if (!isSaved)
-            {
-                return (false, "Failed to check-in in record", string.Empty);
+                throw new Exception("Invalid booking reference.");
             }
-            return (true, "Check-in Successfull", seat);
+
+            return await _checkInRepository.CheckInAsync(request);
+        }
+        public async Task<CheckInResponse> GetCheckInDetailsAsync(string checkInId)
+        {
+            return await _checkInRepository.GetCheckInDetailsAsync(checkInId);
         }
     }
 }

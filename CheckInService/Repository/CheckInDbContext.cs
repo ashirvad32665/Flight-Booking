@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using CheckInService.Models;
 using Microsoft.EntityFrameworkCore;
+using Models;
 
 namespace CheckInService.Repository;
 
@@ -26,14 +26,18 @@ public partial class CheckInDbContext : DbContext
     {
         modelBuilder.Entity<CheckIn>(entity =>
         {
-            entity.HasKey(e => e.CheckInId).HasName("PK__CheckIn__E6497684A74764D1");
+            entity.HasKey(e => e.Id).HasName("PK__CheckIn__3214EC07022DF2FE");
 
             entity.ToTable("CheckIn");
 
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.Status)
-                .HasMaxLength(50)
-                .IsUnicode(false);
+            entity.HasIndex(e => e.CheckInId, "UQ__CheckIn__E64976859D0F5E88").IsUnique();
+
+            entity.Property(e => e.CheckInId).HasMaxLength(20);
+            entity.Property(e => e.CheckInTime)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.ReferenceNumber).HasMaxLength(20);
+            entity.Property(e => e.SeatNumber).HasMaxLength(5);
         });
 
         OnModelCreatingPartial(modelBuilder);

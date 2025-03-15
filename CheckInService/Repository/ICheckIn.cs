@@ -1,9 +1,10 @@
-﻿using CheckInService.Models;
+﻿
 
 namespace CheckInService.Repository
 {
     public interface ICheckIn
     {
-        Task<bool> CheckInAsync(CheckIn checkIn);
+        Task<CheckInResponse> CheckInAsync(CheckInRequest request);
+        Task<CheckInResponse> GetCheckInDetailsAsync(string referenceNumber);
     }
 }

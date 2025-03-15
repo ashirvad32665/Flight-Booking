@@ -57,7 +57,7 @@ namespace Flight_Bookings_Tests
                 FlightId = 123,
                 Passengers = new List<PassengerDTO>
             {
-                new PassengerDTO { Name = "John Doe", Email = "john@example.com", Gender = "Male" }
+                new PassengerDTO { Name = "Amit Kumar", Email = "amit@example.com", Gender = "Male" }
             }
             };
 
@@ -96,5 +96,28 @@ namespace Flight_Bookings_Tests
             Assert.AreEqual(referenceNumber, response.ReferenceNumber); // Assert the reference number
 
         }
+        [TestMethod]
+        public async Task BookFlight_ShouldReturn400_WhenRequestIsInvalid()
+        {
+            // Arrange
+            var request = new BookingRequest
+            {
+                FlightId = 123,
+                Passengers = new List<PassengerDTO>() // No passengers in the request
+            };
+
+            // Act
+            var result = await _controller.BookFlight(request);
+
+            // Assert
+            var badRequestResult = result as BadRequestObjectResult;
+            Assert.IsNotNull(badRequestResult);
+            Assert.AreEqual(400, badRequestResult.StatusCode); // Should return 400
+            var response = badRequestResult.Value as string;
+            Assert.IsNotNull(response);
+            Assert.AreEqual("Invalid booking request", response); // Custom error message (if applicable)
+        }
+
+
     }
 }
